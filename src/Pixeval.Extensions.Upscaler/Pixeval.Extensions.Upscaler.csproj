@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\..\Pixeval.Extensions\src\Pixeval.Extensions.SDK\Pixeval.Extensions.SDK.csproj" />
+      <PackageReference Include="Pixeval.Extensions.SDK" Version="1.0.0" />
     </ItemGroup>
 
 </Project>

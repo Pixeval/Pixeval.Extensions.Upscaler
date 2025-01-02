@@ -1,6 +1,7 @@
 // Copyright (c) Pixeval.Extensions.Upscaler.
 // Licensed under the GPL v3 License.
 
+using System;
 using System.Globalization;
 using Pixeval.Extensions.Common;
 using System.Runtime.InteropServices.Marshalling;
@@ -21,6 +22,16 @@ public partial class ExtensionsHost : ExtensionsHostBase
 
     public override string ExtensionName => "Pixeval Upscaler Extension";
 
+    public override string AuthorName => "Pixeval";
+
+    public override string ExtensionLink => "https://github.com/Pixeval/Pixeval.Extensions.Upscaler";
+
+    public override string HelpLink => "https://github.com/Pixeval/Pixeval.Extensions.Upscaler";
+
+    public override string Description => "Pixeval Upscaler Extension";
+
+    public override string Version => "1.0.0";
+
     public override IExtension[] Extensions { get; } =
     [
         new UpscalerModelSettingExtension(),
@@ -31,10 +42,10 @@ public partial class ExtensionsHost : ExtensionsHostBase
 
     public static ExtensionsHost Current { get; } = new();
 
-    [UnmanagedCallersOnly(EntryPoint = nameof(DllGetMetadata))]
-    private static unsafe int DllGetMetadata(void** ppv)
+    [UnmanagedCallersOnly(EntryPoint = nameof(DllGetExtensionsHost))]
+    private static unsafe int DllGetExtensionsHost(void** ppv)
     {
-        return DllGetMetadata(ppv, Current);
+        return DllGetExtensionsHost(ppv, Current);
     }
 
     public static Upscaler Upscaler { get; } = new();
@@ -49,7 +60,7 @@ public partial class ExtensionsHost : ExtensionsHostBase
     {
     }
 
-    public override void OnIntOrEnumPropertyChanged(string token, int value)
+    public override void OnIntPropertyChanged(string token, int value)
     {
         switch (token)
         {
@@ -69,7 +80,7 @@ public partial class ExtensionsHost : ExtensionsHostBase
     {
     }
 
-    public override void OnColorPropertyChanged(string token, uint value)
+    public override void OnUIntPropertyChanged(string token, uint value)
     {
     }
 
@@ -78,6 +89,10 @@ public partial class ExtensionsHost : ExtensionsHostBase
     }
 
     public override void OnStringsArrayPropertyChanged(string token, string[] value)
+    {
+    }
+
+    public override void OnDateTimeOffsetPropertyChanged(string token, DateTimeOffset dateTimeOffset)
     {
     }
 }

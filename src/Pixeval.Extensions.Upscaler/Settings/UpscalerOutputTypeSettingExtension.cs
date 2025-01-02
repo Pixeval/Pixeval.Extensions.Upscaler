@@ -31,5 +31,7 @@ public partial class UpscalerOutputTypeSettingExtension : EnumSettingsExtensionB
 
     public override int DefaultValue => (int)UpscalerOutputType.Png;
 
+    public override string[]? EnumStrings => null;
+
     public override Type EnumType => typeof(UpscalerOutputType);
 }

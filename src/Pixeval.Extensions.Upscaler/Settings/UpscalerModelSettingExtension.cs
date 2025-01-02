@@ -33,5 +33,7 @@ public partial class UpscalerModelSettingExtension : EnumSettingsExtensionBase
 
     public override int DefaultValue => (int)UpscalerModel.RealESRGANX4Plus;
 
+    public override string[]? EnumStrings => null;
+
     public override Type EnumType => typeof(UpscalerModel);
 }

@@ -35,4 +35,6 @@ public partial class UpscalerScaleRatioSettingExtension : IntSettingsExtensionBa
     public override int MinValue => 2;
 
     public override int MaxValue => 4;
+
+    public override string? Placeholder => null;
 }

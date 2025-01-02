@@ -23,6 +23,6 @@ public partial class UpscaleImageTransformerExtension : ImageTransformerExtensio
 
     public override async Task<IStream?> TransformAsync(IStream originalStream)
     {
-        return new NetToComStream(await ExtensionsHost.Upscaler.UpscaleAsync(originalStream));
+        return (await ExtensionsHost.Upscaler.UpscaleAsync(originalStream)).ToIStream();
     }
 }
