@@ -12,7 +12,7 @@ namespace Pixeval.Extensions.Upscaler.Settings;
 [Guid("6D184CD5-3926-4294-95AC-5F643D5D9CF9")]
 public partial class UpscalerScaleRatioSettingExtension : IntSettingsExtensionBase
 {
-    public override Symbol Icon => Symbol.EyeTracking;
+    public override Symbol Icon => Symbol.RatioOneToOne;
 
     public override string Token => "UpscalerScaleRatio";
 
@@ -21,6 +21,11 @@ public partial class UpscalerScaleRatioSettingExtension : IntSettingsExtensionBa
     public override string Description => "默认为4，注意过大的倍率可能导致生成的图片体积过大影响性能";
 
     public override string DescriptionUri => "https://github.com/xinntao/Real-ESRGAN/blob/master/README_CN.md";
+
+    public override void OnValueChanged(int value)
+    {
+        ExtensionsHost.Upscaler.ScaleRatio = value;
+    }
 
     public override void OnExtensionLoaded()
     {

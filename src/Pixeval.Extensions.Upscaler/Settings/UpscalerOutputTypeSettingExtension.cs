@@ -21,6 +21,11 @@ public partial class UpscalerOutputTypeSettingExtension : EnumSettingsExtensionB
 
     public override string Description => "默认为PNG";
 
+    public override void OnValueChanged(int value)
+    {
+        ExtensionsHost.Upscaler.OutputType = (UpscalerOutputType)value;
+    }
+
     public override void OnExtensionLoaded()
     {
     }

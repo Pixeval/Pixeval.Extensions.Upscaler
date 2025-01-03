@@ -23,6 +23,11 @@ public partial class UpscalerModelSettingExtension : EnumSettingsExtensionBase
 
     public override string DescriptionUri => "https://github.com/xinntao/Real-ESRGAN/blob/master/README_CN.md";
 
+    public override void OnValueChanged(int value)
+    {
+        ExtensionsHost.Upscaler.Model = (UpscalerModel)value;
+    }
+
     public override void OnExtensionLoaded()
     {
     }

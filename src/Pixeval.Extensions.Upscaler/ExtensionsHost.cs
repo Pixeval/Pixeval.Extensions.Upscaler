@@ -1,7 +1,6 @@
 // Copyright (c) Pixeval.Extensions.Upscaler.
 // Licensed under the GPL v3 License.
 
-using System;
 using System.Globalization;
 using Pixeval.Extensions.Common;
 using System.Runtime.InteropServices.Marshalling;
@@ -54,45 +53,5 @@ public partial class ExtensionsHost : ExtensionsHostBase
     {
         TempDirectory = tempDirectory;
         Culture = new(cultureBcl47);
-    }
-
-    public override void OnStringPropertyChanged(string token, string value)
-    {
-    }
-
-    public override void OnIntPropertyChanged(string token, int value)
-    {
-        switch (token)
-        {
-            case nameof(UpscalerModel):
-                Upscaler.Model = (UpscalerModel)value;
-                break;
-            case "UpscalerScaleRatio":
-                Upscaler.ScaleRatio = value;
-                break;
-            case nameof(UpscalerOutputType):
-                Upscaler.OutputType = (UpscalerOutputType)value;
-                break;
-        }
-    }
-
-    public override void OnDoublePropertyChanged(string token, double value)
-    {
-    }
-
-    public override void OnUIntPropertyChanged(string token, uint value)
-    {
-    }
-
-    public override void OnBoolPropertyChanged(string token, bool value)
-    {
-    }
-
-    public override void OnStringsArrayPropertyChanged(string token, string[] value)
-    {
-    }
-
-    public override void OnDateTimeOffsetPropertyChanged(string token, DateTimeOffset dateTimeOffset)
-    {
     }
 }
