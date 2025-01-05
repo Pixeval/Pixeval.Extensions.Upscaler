@@ -21,7 +21,7 @@ public class Upscaler : IDisposable, IAsyncDisposable
 
     public const string ProcessCompletedMark = "Completed";
 
-    private static string ExecutablePath => @"C:\WorkSpace\Pixeval.Extensions.Upscaler\src\Pixeval.Extensions.Upscaler\Assets\RealESRGAN\realesrgan-ncnn-vulkan.exe";
+    private static string ExecutablePath => Path.Combine(ExtensionsHost.ExtensionDirectory, @"Pixeval.Extensions.Upscaler.Assets\RealESRGAN\realesrgan-ncnn-vulkan.exe") ;
 
     private Stream? _upscaleStream;
 

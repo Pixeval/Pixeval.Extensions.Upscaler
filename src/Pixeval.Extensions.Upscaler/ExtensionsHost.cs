@@ -17,7 +17,7 @@ public partial class ExtensionsHost : ExtensionsHostBase
 {
     public static string TempDirectory { get; private set; } = "";
 
-    public static CultureInfo Culture { get; private set; } = null!;
+    public static string ExtensionDirectory { get; private set; } = "";
 
     public override string ExtensionName => "Pixeval Upscaler Extension";
 
@@ -27,7 +27,20 @@ public partial class ExtensionsHost : ExtensionsHostBase
 
     public override string HelpLink => "https://github.com/Pixeval/Pixeval.Extensions.Upscaler";
 
-    public override string Description => "Pixeval Upscaler Extension";
+    public override string Description => "Pixeval AI 提升画质插件";
+
+    public override byte[]? Icon
+    {
+        get
+        {
+            var stream = typeof(ExtensionsHost).Assembly.GetManifestResourceStream("logo");
+            if (stream is null)
+                return null;
+            var array = new byte[stream.Length];
+            _ = stream.Read(array);
+            return array;
+        }
+    }
 
     public override string Version => "1.0.0";
 
@@ -49,9 +62,10 @@ public partial class ExtensionsHost : ExtensionsHostBase
 
     public static Upscaler Upscaler { get; } = new();
 
-    public override void Initialize(string cultureBcl47, string tempDirectory)
+    public override void Initialize(string cultureName, string tempDirectory, string extensionDirectory)
     {
         TempDirectory = tempDirectory;
-        Culture = new(cultureBcl47);
+        ExtensionDirectory = extensionDirectory;
+        CultureInfo.CurrentCulture = CultureInfo.CurrentUICulture = new(cultureName);
     }
 }

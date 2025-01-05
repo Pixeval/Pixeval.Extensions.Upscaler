@@ -28,4 +28,8 @@ Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		RESX_SortFileContentOnSave = False
+		RESX_NeutralResourcesLanguage = zh-Hans
+	EndGlobalSection
 EndGlobal

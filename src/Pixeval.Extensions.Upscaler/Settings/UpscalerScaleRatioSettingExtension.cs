@@ -20,8 +20,6 @@ public partial class UpscalerScaleRatioSettingExtension : IntSettingsExtensionBa
 
     public override string Description => "默认为4，注意过大的倍率可能导致生成的图片体积过大影响性能";
 
-    public override string DescriptionUri => "https://github.com/xinntao/Real-ESRGAN/blob/master/README_CN.md";
-
     public override void OnValueChanged(int value)
     {
         ExtensionsHost.Upscaler.ScaleRatio = value;
