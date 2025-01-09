@@ -41,23 +41,14 @@ public class Upscaler : IDisposable, IAsyncDisposable
             var id = Guid.NewGuid().ToString();
 
             var tempFilePath = Path.Combine(ExtensionsHost.TempDirectory, id);
-            stream.Seek(0, SeekOrigin.Begin, out _);
+            stream.Seek(0, SeekOrigin.Begin);
 
             // scoped-using is obligatory here, otherwise the file will be locked and the process will not be able to access it
             
-            await using (var tempStream = IoHelper.OpenAsyncWrite(tempFilePath))
-            {
-                var buffer = new byte[4096];
-                while (true)
-                {
-                    stream.Read(buffer, (uint)buffer.Length, out var bytesRead);
-                    if (bytesRead is 0)
-                        break;
-                    await tempStream.WriteAsync(buffer);
-                }
-            }
+            await using (var tempStream = IoHelper.OpenAsyncWrite(tempFilePath)) 
+                await stream.CopyToAsync(tempStream.ToIStream());
 
-            stream.Seek(0, SeekOrigin.Begin, out _);
+            stream.Seek(0, SeekOrigin.Begin);
 
             var modelParam = Model switch
             {

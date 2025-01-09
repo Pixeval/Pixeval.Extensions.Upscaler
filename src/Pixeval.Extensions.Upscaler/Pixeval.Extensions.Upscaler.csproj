@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <LangVersion>preview</LangVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Pixeval.Extensions.SDK" Version="4.3.3" />
+        <PackageReference Include="Pixeval.Extensions.SDK" Version="4.3.3.2" />
 
         <EmbeddedResource Include="Resources/logo.png" Link="logo.png" LogicalName="logo" />
     </ItemGroup>

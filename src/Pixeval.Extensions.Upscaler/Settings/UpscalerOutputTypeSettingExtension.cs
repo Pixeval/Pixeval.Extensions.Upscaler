@@ -2,7 +2,6 @@
 // Licensed under the GPL v3 License.
 
 using System;
-using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using FluentIcons.Common;
 using Pixeval.Extensions.SDK.Settings;
@@ -10,7 +9,6 @@ using Pixeval.Extensions.SDK.Settings;
 namespace Pixeval.Extensions.Upscaler.Settings;
 
 [GeneratedComClass]
-[Guid("1C03FD87-A5C8-4B45-95D7-6B11F0BBC000")]
 public partial class UpscalerOutputTypeSettingExtension : EnumSettingsExtensionBase
 {
     public override Symbol Icon => Symbol.ImageGlobe;

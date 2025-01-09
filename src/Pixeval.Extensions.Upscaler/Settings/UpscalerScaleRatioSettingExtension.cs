@@ -1,7 +1,6 @@
 // Copyright (c) Pixeval.Extensions.Upscaler.
 // Licensed under the GPL v3 License.
 
-using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using FluentIcons.Common;
 using Pixeval.Extensions.SDK.Settings;
@@ -9,7 +8,6 @@ using Pixeval.Extensions.SDK.Settings;
 namespace Pixeval.Extensions.Upscaler.Settings;
 
 [GeneratedComClass]
-[Guid("6D184CD5-3926-4294-95AC-5F643D5D9CF9")]
 public partial class UpscalerScaleRatioSettingExtension : IntSettingsExtensionBase
 {
     public override Symbol Icon => Symbol.RatioOneToOne;

@@ -12,7 +12,6 @@ using Pixeval.Extensions.Upscaler.Transformers;
 namespace Pixeval.Extensions.Upscaler;
 
 [GeneratedComClass]
-[Guid("15946DBC-7928-4CF9-B63D-D5340756235E")]
 public partial class ExtensionsHost : ExtensionsHostBase
 {
     public static string TempDirectory { get; private set; } = "";

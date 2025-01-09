@@ -2,7 +2,6 @@
 // Licensed under the GPL v3 License.
 
 using System;
-using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using FluentIcons.Common;
 using Pixeval.Extensions.SDK.Settings;
@@ -10,7 +9,6 @@ using Pixeval.Extensions.SDK.Settings;
 namespace Pixeval.Extensions.Upscaler.Settings;
 
 [GeneratedComClass]
-[Guid("AD1BCDA9-55C7-4FA0-92F6-114E465E2F5F")]
 public partial class UpscalerModelSettingExtension : EnumSettingsExtensionBase
 {
     public override Symbol Icon => Symbol.EyeTracking;
