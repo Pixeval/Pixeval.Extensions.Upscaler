@@ -1,5 +1,4 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
@@ -9,9 +8,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Pixeval.Extensions.SDK" Version="4.3.3.2" />
+        <PackageReference Include="Pixeval.Extensions.SDK" Version="4.3.4" />
 
         <EmbeddedResource Include="Resources/logo.png" Link="logo.png" LogicalName="logo" />
     </ItemGroup>
-
 </Project>
