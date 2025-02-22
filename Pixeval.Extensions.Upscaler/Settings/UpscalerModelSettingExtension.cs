@@ -5,6 +5,7 @@ using System;
 using System.Runtime.InteropServices.Marshalling;
 using FluentIcons.Common;
 using Pixeval.Extensions.SDK.Settings;
+using Pixeval.Extensions.Upscaler.Transformers;
 
 namespace Pixeval.Extensions.Upscaler.Settings;
 
@@ -23,7 +24,7 @@ public partial class UpscalerModelSettingExtension : EnumSettingsExtensionBase
 
     public override void OnValueChanged(int value)
     {
-        ExtensionsHost.Upscaler.Model = (UpscalerModel)value;
+        UpscaleImageTransformerExtension.Upscaler.Model = (UpscalerModel)value;
     }
 
     public override void OnExtensionLoaded()

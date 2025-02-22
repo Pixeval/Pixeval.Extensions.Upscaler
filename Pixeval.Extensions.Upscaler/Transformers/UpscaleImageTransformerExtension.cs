@@ -14,16 +14,20 @@ public partial class UpscaleImageTransformerExtension : ImageTransformerExtensio
 {
     public override void OnExtensionLoaded()
     {
+        Upscaler = new();
     }
 
     public override void OnExtensionUnloaded()
     {
+        Upscaler.Dispose();
     }
 
     public override async Task<IStream?> TransformAsync(IStream originalStream)
     {
-        return (await ExtensionsHost.Upscaler.UpscaleAsync(originalStream)).ToIStream();
+        return (await Upscaler.UpscaleAsync(originalStream)).ToIStream();
     }
+
+    public static Upscaler Upscaler { get; private set; } = null!;
 
     /// <inheritdoc />
     public override Symbol Icon => Symbol.ImageSparkle;

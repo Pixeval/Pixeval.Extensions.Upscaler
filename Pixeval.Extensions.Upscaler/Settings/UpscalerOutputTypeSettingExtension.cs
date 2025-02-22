@@ -5,6 +5,7 @@ using System;
 using System.Runtime.InteropServices.Marshalling;
 using FluentIcons.Common;
 using Pixeval.Extensions.SDK.Settings;
+using Pixeval.Extensions.Upscaler.Transformers;
 
 namespace Pixeval.Extensions.Upscaler.Settings;
 
@@ -21,7 +22,7 @@ public partial class UpscalerOutputTypeSettingExtension : EnumSettingsExtensionB
 
     public override void OnValueChanged(int value)
     {
-        ExtensionsHost.Upscaler.OutputType = (UpscalerOutputType)value;
+        UpscaleImageTransformerExtension.Upscaler.OutputType = (UpscalerOutputType)value;
     }
 
     public override void OnExtensionLoaded()

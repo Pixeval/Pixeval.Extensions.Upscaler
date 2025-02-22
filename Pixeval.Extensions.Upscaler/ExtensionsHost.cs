@@ -18,15 +18,15 @@ public partial class ExtensionsHost : ExtensionsHostBase
 
     public static string ExtensionDirectory { get; private set; } = "";
 
-    public override string ExtensionName => "Pixeval Upscaler Extension";
+    public override string ExtensionName => "Real-ESRGAN 提升画质";
 
-    public override string AuthorName => "Pixeval";
+    public override string AuthorName => "Dylech30th";
 
     public override string ExtensionLink => "https://github.com/Pixeval/Pixeval.Extensions.Upscaler";
 
-    public override string HelpLink => "https://github.com/Pixeval/Pixeval.Extensions.Upscaler";
+    public override string HelpLink => "https://github.com/dylech30th";
 
-    public override string Description => "Pixeval AI 提升画质插件";
+    public override string Description => "Pixeval AI 提升画质扩展";
 
     public override byte[]? Icon
     {
@@ -46,7 +46,6 @@ public partial class ExtensionsHost : ExtensionsHostBase
     public override IExtension[] Extensions { get; } =
     [
         new UpscalerModelSettingExtension(),
-        new UpscalerScaleRatioSettingExtension(),
         new UpscalerOutputTypeSettingExtension(),
         new UpscaleImageTransformerExtension()
     ];
@@ -58,8 +57,6 @@ public partial class ExtensionsHost : ExtensionsHostBase
     {
         return DllGetExtensionsHost(ppv, Current);
     }
-
-    public static Upscaler Upscaler { get; } = new();
 
     public override void Initialize(string cultureName, string tempDirectory, string extensionDirectory)
     {

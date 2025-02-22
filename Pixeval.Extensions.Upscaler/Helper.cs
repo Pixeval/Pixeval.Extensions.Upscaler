@@ -1,11 +1,15 @@
 // Copyright (c) Pixeval.Extensions.Upscaler.
 // Licensed under the GPL v3 License.
 
+using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
+using System;
 using System.IO;
+using System.Reflection;
 
 namespace Pixeval.Extensions.Upscaler;
 
-public static class IoHelper
+public static class Helper
 {
     public static FileStream OpenAsyncRead(string path, int bufferSize = 4096)
     {
@@ -39,5 +43,10 @@ public static class IoHelper
             BufferSize = bufferSize,
             Options = FileOptions.Asynchronous
         });
+    }
+
+    public static string GetDescription<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TEnum>(this TEnum @enum) where TEnum : Enum
+    {
+        return (typeof(TEnum).GetField(@enum.ToString())?.GetCustomAttribute(typeof(DescriptionAttribute)) as DescriptionAttribute)?.Description ?? throw new Exception("Attribute not found");
     }
 }
