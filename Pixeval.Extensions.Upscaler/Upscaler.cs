@@ -7,6 +7,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Pixeval.Extensions.Common;
+using Pixeval.Extensions.SDK;
 
 namespace Pixeval.Extensions.Upscaler;
 
@@ -16,7 +17,7 @@ public class Upscaler : IDisposable, IAsyncDisposable
 
     public UpscalerOutputType OutputType { get; set; }
 
-    private static string ExecutablePath => Path.Combine(ExtensionsHost.ExtensionDirectory, @"Pixeval.Extensions.Upscaler.Assets\RealESRGAN\realesrgan-ncnn-vulkan.exe");
+    private static string ExecutablePath => Path.Combine(ExtensionsHostBase.ExtensionDirectory, @"Pixeval.Extensions.Upscaler.Assets\RealESRGAN\realesrgan-ncnn-vulkan.exe");
 
     private readonly SemaphoreSlim _runningSignal = new(1, 1);
 
@@ -32,7 +33,7 @@ public class Upscaler : IDisposable, IAsyncDisposable
         {
             var id = Guid.NewGuid().ToString();
 
-            var tempFilePath = Path.Combine(ExtensionsHost.TempDirectory, id);
+            var tempFilePath = Path.Combine(ExtensionsHostBase.TempDirectory, id);
             stream.Seek(0, SeekOrigin.Begin);
 
             // scoped-using is obligatory here, otherwise the file will be locked and the process will not be able to access it
@@ -44,7 +45,7 @@ public class Upscaler : IDisposable, IAsyncDisposable
 
             var modelParam = Model.GetDescription();
             var outputType = OutputType.GetDescription();
-            var outputFilePath = Path.Combine(ExtensionsHost.TempDirectory, $"{id}_out.{outputType}");
+            var outputFilePath = Path.Combine(ExtensionsHostBase.TempDirectory, $"{id}_out.{outputType}");
 
             using var process = new Process();
             process.StartInfo = new()

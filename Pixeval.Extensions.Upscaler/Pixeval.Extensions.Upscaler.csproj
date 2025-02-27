@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
@@ -8,8 +8,23 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Pixeval.Extensions.SDK" Version="4.3.6" />
+        <PackageReference Include="Pixeval.Extensions.SDK" Version="4.3.9-dev-3" />
 
-        <EmbeddedResource Include="Resources/logo.png" Link="logo.png" LogicalName="logo" />
+        <EmbeddedResource Include="Assets/logo.png" Link="logo.png" LogicalName="logo" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Strings\Resource.Designer.cs">
+        <DesignTime>True</DesignTime>
+        <AutoGen>True</AutoGen>
+        <DependentUpon>Resource.resx</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Update="Strings\Resource.resx">
+        <Generator>ResXFileCodeGenerator</Generator>
+        <LastGenOutput>Resource.Designer.cs</LastGenOutput>
+      </EmbeddedResource>
     </ItemGroup>
 </Project>

@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 using FluentIcons.Common;
 using Pixeval.Extensions.Common;
 using Pixeval.Extensions.SDK.Transformers;
+using Pixeval.Extensions.Upscaler.Strings;
 
 namespace Pixeval.Extensions.Upscaler.Transformers;
 
 [GeneratedComClass]
-public partial class UpscaleImageTransformerExtension : ImageTransformerExtensionBase
+public partial class UpscaleImageTransformerExtension : ImageTransformerCommandExtensionBase
 {
     public override void OnExtensionLoaded()
     {
@@ -33,7 +34,7 @@ public partial class UpscaleImageTransformerExtension : ImageTransformerExtensio
     public override Symbol Icon => Symbol.ImageSparkle;
 
     /// <inheritdoc />
-    public override string Label => "提升画质";
+    public override string Label => Resource.UpscaleImageTransformerLabel;
 
     /// <inheritdoc />
     public override string Description => Label;

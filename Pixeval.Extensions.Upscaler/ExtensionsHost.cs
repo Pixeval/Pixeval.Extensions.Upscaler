@@ -1,12 +1,12 @@
 // Copyright (c) Pixeval.Extensions.Upscaler.
 // Licensed under the GPL v3 License.
 
-using System.Globalization;
 using Pixeval.Extensions.Common;
 using System.Runtime.InteropServices.Marshalling;
 using System.Runtime.InteropServices;
 using Pixeval.Extensions.SDK;
 using Pixeval.Extensions.Upscaler.Settings;
+using Pixeval.Extensions.Upscaler.Strings;
 using Pixeval.Extensions.Upscaler.Transformers;
 
 namespace Pixeval.Extensions.Upscaler;
@@ -14,11 +14,7 @@ namespace Pixeval.Extensions.Upscaler;
 [GeneratedComClass]
 public partial class ExtensionsHost : ExtensionsHostBase
 {
-    public static string TempDirectory { get; private set; } = "";
-
-    public static string ExtensionDirectory { get; private set; } = "";
-
-    public override string ExtensionName => "Real-ESRGAN 提升画质";
+    public override string ExtensionName => Resource.ExtensionHostName;
 
     public override string AuthorName => "Dylech30th";
 
@@ -26,7 +22,7 @@ public partial class ExtensionsHost : ExtensionsHostBase
 
     public override string HelpLink => "https://github.com/dylech30th";
 
-    public override string Description => "Pixeval AI 提升画质扩展";
+    public override string Description => Resource.ExtensionHostDescription;
 
     public override byte[]? Icon
     {
@@ -45,23 +41,13 @@ public partial class ExtensionsHost : ExtensionsHostBase
 
     public override IExtension[] Extensions { get; } =
     [
-        new UpscalerModelSettingExtension(),
-        new UpscalerOutputTypeSettingExtension(),
+        new UpscalerModelSettingsExtension(),
+        new UpscalerOutputTypeSettingsExtension(),
         new UpscaleImageTransformerExtension()
     ];
 
     public static ExtensionsHost Current { get; } = new();
 
     [UnmanagedCallersOnly(EntryPoint = nameof(DllGetExtensionsHost))]
-    private static unsafe int DllGetExtensionsHost(void** ppv)
-    {
-        return DllGetExtensionsHost(ppv, Current);
-    }
-
-    public override void Initialize(string cultureName, string tempDirectory, string extensionDirectory)
-    {
-        TempDirectory = tempDirectory;
-        ExtensionDirectory = extensionDirectory;
-        CultureInfo.CurrentCulture = CultureInfo.CurrentUICulture = new(cultureName);
-    }
+    private static unsafe int DllGetExtensionsHost(void** ppv) => DllGetExtensionsHost(ppv, Current);
 }
