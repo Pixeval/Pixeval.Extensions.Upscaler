@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Pixeval.Extensions.SDK" Version="4.3.9" />
+        <PackageReference Include="Pixeval.Extensions.SDK" Version="4.3.11" />
 
         <EmbeddedResource Include="Assets/logo.png" Link="logo.png" LogicalName="logo" />
     </ItemGroup>
