@@ -21,28 +21,31 @@ public static class Helper
         return new(path, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, true);
     }
 
-    public static FileStream OpenAsyncRead(this FileInfo info, int bufferSize = 4096)
+    extension(FileInfo info)
     {
-        return info.Open(new FileStreamOptions
+        public FileStream OpenAsyncRead(int bufferSize = 4096)
         {
-            Mode = FileMode.Open,
-            Access = FileAccess.Read,
-            Share = FileShare.Read,
-            BufferSize = bufferSize,
-            Options = FileOptions.Asynchronous
-        });
-    }
+            return info.Open(new FileStreamOptions
+            {
+                Mode = FileMode.Open,
+                Access = FileAccess.Read,
+                Share = FileShare.Read,
+                BufferSize = bufferSize,
+                Options = FileOptions.Asynchronous
+            });
+        }
 
-    public static FileStream OpenAsyncWrite(this FileInfo info, int bufferSize = 4096)
-    {
-        return info.Open(new FileStreamOptions
+        public FileStream OpenAsyncWrite(int bufferSize = 4096)
         {
-            Mode = FileMode.OpenOrCreate,
-            Access = FileAccess.Write,
-            Share = FileShare.None,
-            BufferSize = bufferSize,
-            Options = FileOptions.Asynchronous
-        });
+            return info.Open(new FileStreamOptions
+            {
+                Mode = FileMode.OpenOrCreate,
+                Access = FileAccess.Write,
+                Share = FileShare.None,
+                BufferSize = bufferSize,
+                Options = FileOptions.Asynchronous
+            });
+        }
     }
 
     public static string GetDescription<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] TEnum>(this TEnum @enum) where TEnum : Enum

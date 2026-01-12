@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Pixeval.Extensions.Common;
 using Pixeval.Extensions.SDK;
 
 namespace Pixeval.Extensions.Upscaler;
@@ -23,7 +22,7 @@ public class Upscaler : IDisposable, IAsyncDisposable
 
     private bool _isDisposed;
 
-    public async Task<Stream> UpscaleAsync(IStream stream)
+    public async Task UpscaleAsync(Stream originalStream, Stream destinationStream)
     {
         if (_isDisposed)
             throw new InvalidOperationException("This upscaler is already disposed");
@@ -34,14 +33,14 @@ public class Upscaler : IDisposable, IAsyncDisposable
             var id = Guid.NewGuid().ToString();
 
             var tempFilePath = Path.Combine(ExtensionsHostBase.TempDirectory, id);
-            _ = stream.Seek(0, SeekOrigin.Begin);
+            _ = originalStream.Seek(0, SeekOrigin.Begin);
 
             // scoped-using is obligatory here, otherwise the file will be locked and the process will not be able to access it
             
             await using (var tempStream = Helper.OpenAsyncWrite(tempFilePath)) 
-                await stream.CopyToAsync(tempStream.ToIStream());
+                await originalStream.CopyToAsync(tempStream);
 
-            _ = stream.Seek(0, SeekOrigin.Begin);
+            _ = originalStream.Seek(0, SeekOrigin.Begin);
 
             var modelParam = Model.GetDescription();
             var outputType = OutputType.GetDescription();
@@ -61,7 +60,8 @@ public class Upscaler : IDisposable, IAsyncDisposable
 
             await process.WaitForExitAsync();
 
-            return Helper.OpenAsyncRead(outputFilePath);
+            await using var outputStream = Helper.OpenAsyncRead(outputFilePath);
+            await outputStream.CopyToAsync(destinationStream);
         }
         finally
         {

@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="Pixeval.Extensions.Upscaler/Pixeval.Extensions.Upscaler.csproj" />
+  <Project Path="UpscalerTest/UpscalerTest.csproj" />
+  <Properties Name="ExtensibilityGlobals" Scope="PostLoad">
+    <Property Name="RESX_SortFileContentOnSave" Value="False" />
+  </Properties>
+</Solution>

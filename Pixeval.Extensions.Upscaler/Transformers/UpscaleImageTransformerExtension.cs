@@ -1,6 +1,7 @@
 // Copyright (c) Pixeval.Extensions.Upscaler.
 // Licensed under the GPL v3 License.
 
+using System.IO;
 using System.Runtime.InteropServices.Marshalling;
 using System.Threading.Tasks;
 using FluentIcons.Common;
@@ -23,10 +24,8 @@ public partial class UpscaleImageTransformerExtension : ImageTransformerCommandE
         Upscaler.Dispose();
     }
 
-    public override async Task<IStream?> TransformAsync(IStream originalStream)
-    {
-        return (await Upscaler.UpscaleAsync(originalStream)).ToIStream();
-    }
+    public override Task TransformAsync(Stream originalStream, Stream destinationStream) =>
+        Upscaler.UpscaleAsync(originalStream, destinationStream);
 
     public static Upscaler Upscaler { get; private set; } = null!;
 
