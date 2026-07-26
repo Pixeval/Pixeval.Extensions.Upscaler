@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="Pixeval.Extensions.ImageTransformers.RealESRGAN/Pixeval.Extensions.ImageTransformers.RealESRGAN.csproj" />
+  <Project Path="Pixeval.Extensions.ImageTransformers.Tests/Pixeval.Extensions.ImageTransformers.Tests.csproj" />
+</Solution>

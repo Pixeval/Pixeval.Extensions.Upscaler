@@ -1,0 +1,364 @@
+name: Publish Pixeval extensions
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: extension-release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CONFIGURATION: Release
+
+jobs:
+  metadata:
+    name: Validate release metadata
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Validate tag version
+        id: version
+        shell: pwsh
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          $version = $env:TAG_NAME -replace '^v', ''
+          if ($version -notmatch '^\d+\.\d+\.\d+$') {
+            throw "Release tags must use the numeric format 5.0.0 or v5.0.0."
+          }
+
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "Release version: $version" >> $env:GITHUB_STEP_SUMMARY
+
+  publish:
+    name: Publish ${{ matrix.rid }}
+    needs: metadata
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-latest
+            rid: win-x64
+          - runner: ubuntu-22.04
+            rid: linux-x64
+          - runner: macos-15-intel
+            rid: osx-x64
+          - runner: macos-15
+            rid: osx-arm64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install Linux NativeAOT prerequisites
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes clang zlib1g-dev
+
+      - name: Publish and package plugins
+        shell: pwsh
+        env:
+          RELEASE_VERSION: ${{ needs.metadata.outputs.version }}
+          RID: ${{ matrix.rid }}
+          REALESRGAN_RELEASE: v0.2.5.0
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+          $nativeExtension = switch -Regex ($env:RID) {
+            '^win-' { '.dll'; break }
+            '^linux-' { '.so'; break }
+            '^osx-' { '.dylib'; break }
+            default { throw "Unsupported runtime identifier: $env:RID" }
+          }
+
+          $projects = @(
+            Get-ChildItem -Path $env:GITHUB_WORKSPACE -Recurse -Filter '*.csproj' -File |
+              Sort-Object FullName |
+              ForEach-Object {
+                $projectFile = $_
+                [xml]$projectXml = Get-Content -Raw -LiteralPath $projectFile.FullName
+                $sdkReference = @(
+                  $projectXml.Project.ItemGroup.PackageReference |
+                    Where-Object { $_.Include -eq 'Pixeval.Extensions.SDK' }
+                )
+                if ($sdkReference.Count -eq 0) {
+                  return
+                }
+
+                $propertiesJson = & dotnet msbuild $projectFile.FullName '-getProperty:PublishAot' '-getProperty:AssemblyName' '-nologo' '-v:q' | Out-String
+                if ($LASTEXITCODE -ne 0) {
+                  throw "Unable to evaluate $($projectFile.FullName)."
+                }
+
+                $properties = ($propertiesJson | ConvertFrom-Json).Properties
+                if (-not [string]::Equals([string]$properties.PublishAot, 'true', [StringComparison]::OrdinalIgnoreCase)) {
+                  return
+                }
+
+                $assemblyName = [string]$properties.AssemblyName
+                if ([string]::IsNullOrWhiteSpace($assemblyName)) {
+                  $assemblyName = $projectFile.BaseName
+                }
+
+                [pscustomobject]@{
+                  Path = $projectFile.FullName
+                  ProjectName = $projectFile.BaseName
+                  AssemblyName = $assemblyName
+                }
+              }
+          )
+
+          if ($projects.Count -eq 0) {
+            throw 'No AOT plugin project referencing Pixeval.Extensions.SDK was found.'
+          }
+
+          $publishRoot = Join-Path $env:RUNNER_TEMP "pixeval-extensions-$env:RID"
+          $releaseRoot = Join-Path $env:GITHUB_WORKSPACE 'artifacts/release'
+          New-Item -ItemType Directory -Force -Path $publishRoot, $releaseRoot | Out-Null
+
+          $portablePackage = switch ($env:RID) {
+            'win-x64' {
+              [pscustomobject]@{
+                Name = 'realesrgan-ncnn-vulkan-20220424-windows.zip'
+                Sha256 = 'ABC02804E17982A3BE33675E4D471E91EA374E65B70167ABC09E31ACB412802D'
+              }
+              break
+            }
+            'linux-x64' {
+              [pscustomobject]@{
+                Name = 'realesrgan-ncnn-vulkan-20220424-ubuntu.zip'
+                Sha256 = 'E5AA6EB131234B87C0C51F82B89390F5E3E642B7B70F2B9BBE95B6A285A40C96'
+              }
+              break
+            }
+            { $_ -in @('osx-x64', 'osx-arm64') } {
+              [pscustomobject]@{
+                Name = 'realesrgan-ncnn-vulkan-20220424-macos.zip'
+                Sha256 = 'E0AD05580ABFEB25F8D8FB55AAF7BEDF552C375B5B4D9BD3C8D59764D2CC333A'
+              }
+              break
+            }
+            default { throw "No portable Real-ESRGAN package is available for $env:RID." }
+          }
+
+          $portablePackageName = $portablePackage.Name
+          $portablePackageDirectory = Join-Path $publishRoot 'realesrgan-portable'
+          $portablePackageArchive = Join-Path $publishRoot $portablePackageName
+          $portablePackageUrl = "https://github.com/xinntao/Real-ESRGAN/releases/download/$env:REALESRGAN_RELEASE/$portablePackageName"
+          New-Item -ItemType Directory -Force -Path $portablePackageDirectory | Out-Null
+          Invoke-WebRequest -Uri $portablePackageUrl -OutFile $portablePackageArchive
+
+          $portablePackageHash = (Get-FileHash -LiteralPath $portablePackageArchive -Algorithm SHA256).Hash
+          if (-not [string]::Equals($portablePackageHash, $portablePackage.Sha256, [StringComparison]::OrdinalIgnoreCase)) {
+            throw "SHA256 mismatch for '$portablePackageName'."
+          }
+
+          Expand-Archive -LiteralPath $portablePackageArchive -DestinationPath $portablePackageDirectory -Force
+
+          $portableExecutableName = if ($env:RID -like 'win-*') {
+            'realesrgan-ncnn-vulkan.exe'
+          }
+          else {
+            'realesrgan-ncnn-vulkan'
+          }
+          $portableExecutable = Get-ChildItem -LiteralPath $portablePackageDirectory -Recurse -File |
+            Where-Object { $_.Name -eq $portableExecutableName } |
+            Select-Object -First 1
+          if ($null -eq $portableExecutable) {
+            throw "The portable Real-ESRGAN package does not contain '$portableExecutableName'."
+          }
+
+          $portableModelsDirectory = Join-Path $portableExecutable.DirectoryName 'models'
+          if (-not (Test-Path -LiteralPath $portableModelsDirectory -PathType Container)) {
+            throw "The portable Real-ESRGAN package does not contain a models directory."
+          }
+
+          $portableModelFiles = @(Get-ChildItem -LiteralPath $portableModelsDirectory -File)
+          if ($portableModelFiles.Count -eq 0) {
+            throw 'The portable Real-ESRGAN package does not contain model files.'
+          }
+
+          $portableRuntimeFiles = @()
+          if ($env:RID -like 'win-*') {
+            $portableRuntimeFiles = @(
+              Get-ChildItem -LiteralPath $portableExecutable.DirectoryName -Filter 'vcomp140*.dll' -File
+            )
+            if ($portableRuntimeFiles.Count -eq 0) {
+              throw 'The portable Real-ESRGAN package does not contain the Visual C++ runtime libraries.'
+            }
+          }
+
+          foreach ($project in $projects) {
+            $publishDirectory = Join-Path $publishRoot $project.ProjectName
+            Remove-Item -LiteralPath $publishDirectory -Recurse -Force -ErrorAction SilentlyContinue
+            New-Item -ItemType Directory -Force -Path $publishDirectory | Out-Null
+
+            $restoreArguments = @('restore', $project.Path, '--runtime', $env:RID, "-p:Configuration=$env:CONFIGURATION", "-p:RuntimeIdentifier=$env:RID")
+            & dotnet @restoreArguments
+            if ($LASTEXITCODE -ne 0) {
+              throw "Restore failed for $($project.ProjectName) ($env:RID)."
+            }
+
+            $publishArguments = @('publish', $project.Path, '--configuration', $env:CONFIGURATION, '--runtime', $env:RID, '--self-contained', 'true', '--no-restore', '--output', $publishDirectory, "-p:RuntimeIdentifier=$env:RID", '-p:PublishAot=true', '-p:NativeLib=Shared', '-p:StripSymbols=true', '-p:DebugSymbols=false', '-p:DebugType=None', "-p:Version=$env:RELEASE_VERSION", "-p:AssemblyVersion=$env:RELEASE_VERSION", "-p:FileVersion=$env:RELEASE_VERSION", "-p:InformationalVersion=$env:RELEASE_VERSION")
+            & dotnet @publishArguments
+            if ($LASTEXITCODE -ne 0) {
+              throw "Publish failed for $($project.ProjectName) ($env:RID)."
+            }
+
+            $runtimeDependencyEntries = @()
+            if ($project.ProjectName -eq 'Pixeval.Extensions.ImageTransformers.RealESRGAN') {
+              $realESRGANDirectory = Join-Path $publishDirectory 'RealESRGAN'
+              $modelsDirectory = Join-Path $realESRGANDirectory 'models'
+              New-Item -ItemType Directory -Force -Path $modelsDirectory | Out-Null
+
+              Copy-Item -LiteralPath $portableExecutable.FullName -Destination $realESRGANDirectory -Force
+              $packagedExecutablePath = Join-Path $realESRGANDirectory $portableExecutableName
+              if ($env:RID -notlike 'win-*') {
+                & chmod +x $packagedExecutablePath
+                if ($LASTEXITCODE -ne 0) {
+                  throw "Unable to mark '$packagedExecutablePath' as executable."
+                }
+              }
+
+              foreach ($portableModelFile in $portableModelFiles) {
+                Copy-Item -LiteralPath $portableModelFile.FullName -Destination $modelsDirectory -Force
+              }
+
+              foreach ($portableRuntimeFile in $portableRuntimeFiles) {
+                Copy-Item -LiteralPath $portableRuntimeFile.FullName -Destination $realESRGANDirectory -Force
+              }
+
+              $runtimeDependencyEntries += "RealESRGAN/$portableExecutableName"
+              $runtimeDependencyEntries += @(
+                $portableModelFiles | ForEach-Object {
+                  "RealESRGAN/models/$($_.Name)"
+                }
+              )
+              $runtimeDependencyEntries += @(
+                $portableRuntimeFiles | ForEach-Object { "RealESRGAN/$($_.Name)" }
+              )
+            }
+
+            $nativeLibraryName = "$($project.AssemblyName)$nativeExtension"
+            $nativeLibraryPath = Join-Path $publishDirectory $nativeLibraryName
+            if (-not (Test-Path -LiteralPath $nativeLibraryPath -PathType Leaf)) {
+              $prefixedLibraryName = "lib$nativeLibraryName"
+              $prefixedLibraryPath = Join-Path $publishDirectory $prefixedLibraryName
+              if (Test-Path -LiteralPath $prefixedLibraryPath -PathType Leaf) {
+                $nativeLibraryName = $prefixedLibraryName
+                $nativeLibraryPath = $prefixedLibraryPath
+              }
+            }
+            if (-not (Test-Path -LiteralPath $nativeLibraryPath -PathType Leaf)) {
+              throw "Native library '$nativeLibraryName' was not produced for $($project.ProjectName)."
+            }
+
+            Get-ChildItem -LiteralPath $publishDirectory -Recurse -File |
+              Where-Object { $_.Extension -in @('.pdb', '.dbg', '.lib', '.exp') } |
+              Remove-Item -Force
+
+            $archivePath = Join-Path $releaseRoot "$($project.ProjectName)-$env:RELEASE_VERSION-$env:RID.zip"
+            Remove-Item -LiteralPath $archivePath -Force -ErrorAction SilentlyContinue
+            # ZipFile keeps the host library at the archive root, one of Pixeval's accepted layouts.
+            [IO.Compression.ZipFile]::CreateFromDirectory($publishDirectory, $archivePath, [IO.Compression.CompressionLevel]::Optimal, $false)
+
+            $archive = [IO.Compression.ZipFile]::OpenRead($archivePath)
+            try {
+              $entryNames = @($archive.Entries | ForEach-Object FullName)
+              if ($entryNames -notcontains $nativeLibraryName) {
+                throw "The native library is missing from $archivePath."
+              }
+
+              foreach ($runtimeDependencyEntry in $runtimeDependencyEntries) {
+                if ($entryNames -notcontains $runtimeDependencyEntry) {
+                  throw "Runtime dependency '$runtimeDependencyEntry' is missing from $archivePath."
+                }
+              }
+
+              if ($env:RID -notlike 'win-*' -and $runtimeDependencyEntries.Count -gt 0) {
+                $executableEntry = $archive.GetEntry("RealESRGAN/$portableExecutableName")
+                $unixPermissions = ($executableEntry.ExternalAttributes -shr 16) -band 0x1FF
+                if (($unixPermissions -band 0x49) -eq 0) {
+                  throw "The Real-ESRGAN executable does not have an executable Unix mode in $archivePath."
+                }
+              }
+            }
+            finally {
+              $archive.Dispose()
+            }
+
+            Write-Output "Created $archivePath"
+          }
+
+      - name: Upload plugin packages
+        uses: actions/upload-artifact@v7
+        with:
+          name: plugins-${{ matrix.rid }}
+          path: artifacts/release/*.zip
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: Create release
+    needs:
+      - metadata
+      - publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download plugin packages
+        uses: actions/download-artifact@v8
+        with:
+          pattern: plugins-*
+          path: artifacts/release
+          merge-multiple: true
+
+      - name: Generate SHA256 checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          checksum_file="$RUNNER_TEMP/SHA256SUMS.txt"
+          find artifacts/release -maxdepth 1 -type f -name '*.zip' -print0 |
+            sort -z |
+            xargs -0 sha256sum > "$checksum_file"
+          mv "$checksum_file" artifacts/release/SHA256SUMS.txt
+
+      - name: Create or update release
+        shell: bash
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_VERSION: ${{ needs.metadata.outputs.version }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          assets=(artifacts/release/*)
+          if (( ${#assets[@]} == 0 )); then
+            echo 'No release assets were downloaded.' >&2
+            exit 1
+          fi
+
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber
+          else
+            gh release create "$RELEASE_TAG" "${assets[@]}" \
+              --verify-tag \
+              --title "${{ github.event.repository.name }} $RELEASE_VERSION" \
+              --generate-notes
+          fi
